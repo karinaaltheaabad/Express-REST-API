@@ -26,11 +26,11 @@ const app = express();
 
 // setup morgan which gives us http request logging
 app.use(morgan('dev'));
-
+app.use(express.json());
 //routes 
 app.use('/', indexRouter);
-app.use('/api/users', userRouter);
-app.use('/api/courses', courseRouter);
+app.use('/api', userRouter);
+app.use('/api', courseRouter);
 
 // setup a friendly greeting for the root route
 app.get('/', (req, res) => {

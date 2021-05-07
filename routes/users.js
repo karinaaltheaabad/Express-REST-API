@@ -1,24 +1,33 @@
 var express = require('express');
+let { User } = require('../models');
 var router = express.Router();
-let { User }= require('../models');
+let { asyncHandler } = require('../middleware/async-handler');
+let { authenticateUser } = require('../middleware/auth-user');
 
-function asyncHandler(cb){
-    return async (req,res, next) => {
-        try {
-            await cb(req, res, next);
-        } catch(err) {
-            next(err);
+router.get('/users', authenticateUser, asyncHandler(async (req, res) => {
+    let user = req.currentUser; 
+    let authenticatedUser = await User.findOne({
+        where: {id: user.id},
+        attributes: {
+            exclude: ['password','createdAt', 'updatedAt']
         }
-    }
-}
-
-router.get('/api/users', asyncHandler(async (req, res) => {
-    let user = await User.findAll(); 
-    res.status(200).json(user);
+    });
+    res.status(200).json(authenticatedUser);
 }));
 
-router.post('/api/users', asyncHandler(async (req, res) => {
-    res.status(201).json(user);
+router.post('/users', asyncHandler(async (req, res) => {
+    try {
+        let user = await User.create(req.body); 
+        res.location('/');
+        res.status(201).end();
+    } catch (error) {
+        if (error.name === "SequelizeValidationError" || error.name === 'SequelizeUniqueConstraintError') {
+            const errors = error.errors.map(err => err.message);
+            res.status(400).json({ errors });
+        } else {
+            throw error; 
+        }
+    }
 }));
 
 
