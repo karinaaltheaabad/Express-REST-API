@@ -90,8 +90,10 @@ router.put('/courses/:id', authenticateUser, asyncHandler(async(req,res) => {
 }));
 
 router.delete("/courses/:id", authenticateUser, asyncHandler(async(req,res, next) => {
+    let currUser = req.currentUser; 
     const course = await Course.findOne({ where: {id: req.params.id}  });
-    if (course) {
+
+    if (course.userId === currUser.id) {
         await course.destroy();
         res.status(204).end();
     } else {
