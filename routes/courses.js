@@ -65,9 +65,11 @@ router.post('/courses', authenticateUser, asyncHandler(async(req, res) => {
 }));
 
 router.put('/courses/:id', authenticateUser, asyncHandler(async(req,res) => {
+    let currUser = req.currentUser;
+    let course = await Course.findByPk(req.params.id);
+
     try {
-        let course = await Course.findByPk(req.params.id);
-        if(course){
+        if (course && (course.userId === currUser.id)) {
             course.title = req.body.title;
             course.description = req.body.description;
             course.estimatedTime = req.body.estimatedTime;
